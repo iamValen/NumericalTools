@@ -19,43 +19,41 @@ def intToChar(i):
         return chr(i + ord('a') - 36)
     return '?'
 
-def transformaEmDecimal(numero, base):
-    """Converte um número (lista [parte_inteira, parte_fracionária]) da base 'base' para decimal."""
+def convertToDecimal(number, base):
+    """Convert a number (list [integer_part, fractional_part]) from the given base to decimal."""
     output = 0
-    # Processa a parte fracionária (se houver)
-    if numero[1] != "":
-        lastAlgPos = len(numero[1]) - 1
+    if number[1] != "":
+        lastIndex = len(number[1]) - 1
         i = 0
-        while i <= lastAlgPos:
-            val = charToInt(numero[1][lastAlgPos - i])
+        while i <= lastIndex:
+            val = charToInt(number[1][lastIndex - i])
             if val is None:
-                raise ValueError("Dígito inválido na parte fracionária")
+                raise ValueError("Invalid digit in fractional part")
             output += val * (base ** i)
             i += 1
-        output /= (base ** len(numero[1]))
-    # Processa a parte inteira
-    lastAlgPos = len(numero[0]) - 1
+        output /= (base ** len(number[1]))
+    lastIndex = len(number[0]) - 1
     i = 0
-    while i <= lastAlgPos:
-        if numero[0][lastAlgPos - i] == '-':
+    while i <= lastIndex:
+        if number[0][lastIndex - i] == '-':
             output *= -1
             return output
-        val = charToInt(numero[0][lastAlgPos - i])
+        val = charToInt(number[0][lastIndex - i])
         if val is None:
-            raise ValueError("Dígito inválido na parte inteira")
+            raise ValueError("Invalid digit in integer part")
         output += val * (base ** i)
         i += 1
     return output
 
-def transformaNoutraBase(numero, base):
-    """Converte um número decimal para a base alvo.
-       Retorna uma lista [parte_inteira, parte_fracionária]."""
-    negativeFlag = False
-    if numero < 0:
-        negativeFlag = True
-        numero = -numero
-    intPart = int(numero)
-    fracPart = numero - intPart
+def convertFromDecimal(number, base):
+    """Convert a decimal number to the target base.
+       Returns a list [integer_part, fractional_part]."""
+    negative = False
+    if number < 0:
+        negative = True
+        number = -number
+    intPart = int(number)
+    fracPart = number - intPart
     outInt = []
     outFrac = []
     if intPart == 0:
@@ -70,131 +68,116 @@ def transformaNoutraBase(numero, base):
         outFrac.append(intToChar(tempInt))
         fracPart = temp - tempInt
         i += 1
-    if negativeFlag:
+    if negative:
         outInt.insert(0, '-')
     return [''.join(outInt), ''.join(outFrac)]
 
-def tranformaUmaBaseNoutra(numero, baseIn, baseOut):
-    """Converte um número (lista [parte_inteira, parte_fracionária])
-       da baseIn para a baseOut."""
-    dec = transformaEmDecimal(numero, baseIn)
-    return transformaNoutraBase(dec, baseOut)
+def convertBase(number, baseIn, baseOut):
+    """Convert a number (list [integer_part, fractional_part]) from baseIn to baseOut."""
+    dec = convertToDecimal(number, baseIn)
+    return convertFromDecimal(dec, baseOut)
 
-def formatOutput(numero):
-    """Formata a saída, garantindo que haja parte inteira e fracionária."""
-    if numero[0] == "":
-        numero[0] = "0"
-    if numero[1] == "":
-        numero[1] = "0"
-    return numero[0] + "." + numero[1]
+def formatOutput(number):
+    """Format the output ensuring both integer and fractional parts are present."""
+    if number[0] == "":
+        number[0] = "0"
+    if number[1] == "":
+        number[1] = "0"
+    return number[0] + "." + number[1]
 
 def getAllowedDigits(base):
-    """Retorna uma string com todos os algarismos permitidos para a base informada."""
+    """Return a string with all allowed digits for the given base."""
     digits = ""
     for i in range(base):
         digits += intToChar(i) + " "
     return digits.strip()
 
-# --------------------------
-# Aplicação GUI
-# --------------------------
-
 class BaseConversionApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("Conversão de Bases")
+        self.title("Base Conversion")
         self.geometry("800x600")
         self.configure(fg_color="#131313")
 
-        # Base de entrada
-        self.label_base_in = ctk.CTkLabel(self, text="Base de entrada:", text_color="white", font=("Arial", 14))
-        self.label_base_in.pack(pady=(20, 5))
-        self.entry_base_in = ctk.CTkEntry(self, placeholder_text="Ex: 10", width=200)
-        self.entry_base_in.pack(pady=5)
+        # Input base label and entry
+        self.label_input_base = ctk.CTkLabel(self, text="Input Base:", text_color="white", font=("Arial", 14))
+        self.label_input_base.pack(pady=(20, 5))
+        self.entry_input_base = ctk.CTkEntry(self, placeholder_text="e.g. 10", width=200)
+        self.entry_input_base.pack(pady=5)
 
-        # Label para mostrar os algarismos permitidos
+        # Allowed digits label
         self.label_allowed = ctk.CTkLabel(self, text="", text_color="white")
         self.label_allowed.pack(pady=5)
 
-        # Número a converter
-        self.label_number = ctk.CTkLabel(self, text="Número a converter:", text_color="white", font=("Arial", 14))
+        # Number to convert label and entry
+        self.label_number = ctk.CTkLabel(self, text="Number to Convert:", text_color="white", font=("Arial", 14))
         self.label_number.pack(pady=5)
-        self.entry_number = ctk.CTkEntry(self, placeholder_text="Ex: 123.45", width=200)
+        self.entry_number = ctk.CTkEntry(self, placeholder_text="e.g. 123.45", width=200)
         self.entry_number.pack(pady=5)
 
-        # Base de saída
-        self.label_base_out = ctk.CTkLabel(self, text="Base de saída:", text_color="white", font=("Arial", 14))
-        self.label_base_out.pack(pady=5)
-        self.entry_base_out = ctk.CTkEntry(self, placeholder_text="Ex: 2", width=200)
-        self.entry_base_out.pack(pady=5)
+        # Output base label and entry
+        self.label_output_base = ctk.CTkLabel(self, text="Output Base:", text_color="white", font=("Arial", 14))
+        self.label_output_base.pack(pady=5)
+        self.entry_output_base = ctk.CTkEntry(self, placeholder_text="e.g. 2", width=200)
+        self.entry_output_base.pack(pady=5)
 
-        # Botão Converter
-        self.button_convert = ctk.CTkButton(self, text="Converter", command=self.convert)
+        # Convert button
+        self.button_convert = ctk.CTkButton(self, text="Convert", command=self.convert)
         self.button_convert.pack(pady=20)
 
-        # Label para o resultado
+        # Result label
         self.label_result = ctk.CTkLabel(self, text="", text_color="white", font=("Arial", 16))
         self.label_result.pack(pady=20)
 
-        # Atualiza os dígitos permitidos quando o foco sai da entrada de base de entrada
-        self.entry_base_in.bind("<FocusOut>", self.updateAllowedDigits)
+        self.entry_input_base.bind("<FocusOut>", self.updateAllowedDigits)
 
     def updateAllowedDigits(self, event=None):
         try:
-            base_in = int(self.entry_base_in.get())
+            base_in = int(self.entry_input_base.get())
             if base_in < 2 or base_in > 62:
-                self.label_allowed.configure(text="A base deve estar entre 2 e 62.")
+                self.label_allowed.configure(text="Base must be between 2 and 62.")
             else:
                 digits = getAllowedDigits(base_in)
-                self.label_allowed.configure(text=f"Algarismos permitidos: {digits}")
+                self.label_allowed.configure(text=f"Allowed digits: {digits}")
         except:
             self.label_allowed.configure(text="")
 
     def convert(self):
         try:
-            base_in = int(self.entry_base_in.get())
-            base_out = int(self.entry_base_out.get())
-            number_str = self.entry_number.get().strip()
-
-            # Validação das bases
+            base_in = int(self.entry_input_base.get())
+            base_out = int(self.entry_output_base.get())
+            num_str = self.entry_number.get().strip()
             if not (2 <= base_in <= 62):
-                self.label_result.configure(text="Base de entrada inválida (deve estar entre 2 e 62).")
+                self.label_result.configure(text="Invalid input base (must be between 2 and 62).")
                 return
             if not (2 <= base_out <= 62):
-                self.label_result.configure(text="Base de saída inválida (deve estar entre 2 e 62).")
+                self.label_result.configure(text="Invalid output base (must be between 2 and 62).")
                 return
-
-            # Separa a parte inteira da fracionária
-            if "." in number_str:
-                parts = number_str.split(".")
+            if "." in num_str:
+                parts = num_str.split(".")
                 if len(parts) != 2:
-                    self.label_result.configure(text="Número inválido.")
+                    self.label_result.configure(text="Invalid number.")
                     return
-                numero = [parts[0], parts[1]]
+                number = [parts[0], parts[1]]
             else:
-                numero = [number_str, ""]
-
-            # Valida os dígitos para a base de entrada
-            for ch in numero[0]:
-                if ch == '-' and numero[0].index(ch) == 0:
+                number = [num_str, ""]
+            for ch in number[0]:
+                if ch == '-' and number[0].index(ch) == 0:
                     continue
                 val = charToInt(ch)
                 if val is None or val >= base_in:
-                    self.label_result.configure(text="Número de entrada inválido para a base.")
+                    self.label_result.configure(text="Invalid digit in the input number.")
                     return
-            for ch in numero[1]:
+            for ch in number[1]:
                 val = charToInt(ch)
                 if val is None or val >= base_in:
-                    self.label_result.configure(text="Número de entrada inválido para a base.")
+                    self.label_result.configure(text="Invalid digit in the input number.")
                     return
-
-            # Realiza a conversão
-            result = tranformaUmaBaseNoutra(numero, base_in, base_out)
+            result = convertBase(number, base_in, base_out)
             formatted = formatOutput(result)
-            self.label_result.configure(text=f"Número convertido: {formatted}")
+            self.label_result.configure(text=f"Converted number: {formatted}")
         except Exception as e:
-            self.label_result.configure(text=f"Erro: {str(e)}")
-
+            self.label_result.configure(text=f"Error: {str(e)}")
 
 def run():
     app = BaseConversionApp()

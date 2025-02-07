@@ -1,13 +1,13 @@
 import tkinter as tk
 import customtkinter as ctk
 
-from _methodrow import MethodRow
+from _section import Section
 
 import bases
-
-import gj
-import integration
 import nonLinearSystems
+import LinearSystems
+import integration
+import NewtonRaphson
 
 class Main(ctk.CTk):
     def __init__(self):
@@ -16,82 +16,90 @@ class Main(ctk.CTk):
         self.geometry("1200x800")
         self.configure(fg_color="#131313")
 
-        # Create a container for the method rows that fills the window.
+        # Container frame that fills the window for sections
         methods_frame = ctk.CTkFrame(self, fg_color="#131313")
-        methods_frame.pack(expand=True, fill="both")  # This makes the container expand to fill available space
+        methods_frame.pack(expand=True, fill="both")
 
-        # Top spacer: fills extra space above the buttons.
+        # Top spacer to center content vertically
         top_spacer = ctk.CTkFrame(methods_frame, fg_color="#131313")
         top_spacer.pack(expand=True, fill="both")
 
-        # Container for the button rows.
+        # Container for section buttons
         buttons_container = ctk.CTkFrame(methods_frame, fg_color="#131313")
-        buttons_container.pack()  # This container will hold your buttons (and it will be centered vertically due to the spacers)
+        buttons_container.pack()
 
-        # Fixed button width for all method rows.
+        # Fixed button width for all sections
         button_width = 200
 
-        BaseConvertion = MethodRow(
+        # Section for Base Conversion
+        BaseConversion = Section(
             buttons_container,
-            button_text="Base Convertion",
-            tooltip_text="Convert any number from any base to other base",
+            button_text="              Base Conversion              ",
+            tooltip_text="Convert any number from any base to another base",
             command=self.bases,
             button_width=button_width
         )
-        BaseConvertion.pack(pady=5, fill="x", anchor="center")
+        BaseConversion.pack(pady=5)
 
-        NLSroots = MethodRow(
+        # Section for Integration
+        Integration = Section(
             buttons_container,
-            button_text="Roots of Non Linear Systems",
-            tooltip_text="Find the aproximated values\nof Non Linear Systems using\nthe Bissection, Newton or the Secant method",
+            button_text="                   Integration                  ",
+            command=self.integration,
+            tooltip_text="Compute integrals of functions or coordinate tables",
             button_width=button_width
         )
-        NLSroots.pack(pady=5, fill="x", anchor="center")
+        Integration.pack(pady=5, anchor="center")
 
-        # Create each method row within the buttons container.
-        LinearSystems = MethodRow(
+        # Section for Linear Systems
+        LinearSystemsSection = Section(
             buttons_container,
-            button_text="Linear Systems",
-            tooltip_text="Solve linear systems using \n Gauss & Jordan elimination",
+            button_text="               Linear Systems               ",
+            tooltip_text="Solve linear systems using Jacobi or Gauss-Seidel methods",
             command=self.gj,
             button_width=button_width
         )
-        LinearSystems.pack(pady=5, fill="x", anchor="center")
+        LinearSystemsSection.pack(pady=5, anchor="center")
 
-        method4 = MethodRow(
+        # Section for Non-Linear Systems
+        NonLinearSystemsSection = Section(
             buttons_container,
-            button_text="Integration",
-            command=self.integration,
-            tooltip_text="Find the integrals of functions\nor tables with coordinates",
-            button_width=button_width
-        )
-        method4.pack(pady=5, fill="x", anchor="center")
-
-        method5 = MethodRow(
-            buttons_container,
-            button_text="Non Linear Systems",
-            tooltip_text="Solve non linear systems using \n the Newton elimination.",
+            button_text="            Non Linear Systems            ",
+            tooltip_text="Approximate solutions of non-linear systems using Bisection, Newton or Secant methods",
             command=self.nonLinearSystems,
             button_width=button_width
         )
-        method5.pack(pady=5, fill="x", anchor="center")
+        NonLinearSystemsSection.pack(pady=5, anchor="center")
 
-        # Bottom spacer: fills extra space below the buttons.
+        # Section for Newton-Raphson applied to NLS
+        NewtonRaphsonSection = Section(
+            buttons_container,
+            button_text="         NLS - Newton-Raphson         ",
+            tooltip_text="Approximate solutions of non-linear systems using the Newton-Raphson method",
+            command=self.NewtonRaphson,
+            button_width=button_width
+        )
+        NewtonRaphsonSection.pack(pady=5, anchor="center")
+
+        # Bottom spacer to center content vertically
         bottom_spacer = ctk.CTkFrame(methods_frame, fg_color="#131313")
         bottom_spacer.pack(expand=True, fill="both")
 
+    # Section command callbacks
     def bases(self):
         bases.run()
-
-    def gj(self):
-        gj.run()
     
     def integration(self):
         integration.run()
 
+    def gj(self):
+        LinearSystems.run()
+
     def nonLinearSystems(self):
         nonLinearSystems.run()
 
+    def NewtonRaphson(self):
+        NewtonRaphson.run()
 
 if __name__ == "__main__":
     app = Main()

@@ -1,273 +1,158 @@
-import numpy as np
 import tkinter as tk
 import customtkinter as ctk
-from sympy import symbols, Matrix, lambdify, sympify, pi, E, sin, cos, tan
 
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+# --- Root-finding functions ---
+def secantMethod(func, x0, x1):
+    def f(x):
+        return eval(func)
+    toleranceReached = False
+    for i in range(1, 10):
+        if f(x0) - f(x1) == 0:
+            x0 = x0 - 0.001
+        xi = x0 - f(x0) / (f(x0) - f(x1)) * (x0 - x1)
+        x0 = x1
+        x1 = xi
+        if abs((x1 - x0) / x1) <= 1e-9:
+            toleranceReached = True
+            break
+    result = f"Approximate root: {x1:.10f}"
+    if not toleranceReached:
+        result += " but this value may not be very accurate"
+    return result
+
+def newtonsMethod(func, x0):
+    def f(x):
+        return eval(func)
+    def df(x):
+        return (f(x + 1e-6) - f(x)) / 1e-6
+    toleranceReached = False
+    for i in range(1, 10):
+        if df(x0) == 0:
+            x0 = x0 - 0.001
+        oldx0 = x0
+        x0 = x0 - (f(x0) / df(x0))
+        if abs((x0 - oldx0) / x0) <= 1e-9:
+            toleranceReached = True
+            break
+    result = f"Approximate root: {x0:.10f}"
+    if not toleranceReached:
+        result += " but this value may not be very accurate"
+    return result
+
+def bisectionMethod(func, x0, x1):
+    def f(x):
+        return eval(func)
+    toleranceReached = False
+    for i in range(1, 20):
+        xi = (x0 + x1) / 2.0
+        if f(x0) * f(xi) > 0:
+            x0 = xi
+            lastUsed = 0
+            if x0 == 0:
+                x0 = 0.001
+        else:
+            x1 = xi
+            lastUsed = 1
+            if x1 == 0:
+                x1 = 0.001
+        if abs((x0 - x1) / (x0 if lastUsed == 0 else x1)) <= 1e-6:
+            toleranceReached = True
+            break
+    result = f"Approximate root: {x0:.10f}"
+    if not toleranceReached:
+        result += " but this value may not be very accurate"
+    return result
+
+# --- Root Finder Application ---
+class RootFinderApp(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        self.title("Root-Finding Methods")
+        self.geometry("800x600")
+        self.configure(fg_color="#131313")
+        
+        # Instruction and method selection
+        instruction_label = ctk.CTkLabel(
+            self, text="Select a method and enter the data", font=("Arial", 16), text_color="white"
+        )
+        instruction_label.pack(pady=20)
+        
+        # Container for radio buttons
+        methods_frame = ctk.CTkFrame(self, fg_color="#131313")
+        methods_frame.pack(pady=10)
+        # Variable for the selected method: 0 - Bisection, 1 - Newton, 2 - Secant
+        self.method_var = tk.IntVar(value=0)
+        rb_bisection = ctk.CTkRadioButton(methods_frame, text="Bisection", variable=self.method_var, value=0, text_color="white")
+        rb_newton = ctk.CTkRadioButton(methods_frame, text="Newton", variable=self.method_var, value=1, text_color="white")
+        rb_secant = ctk.CTkRadioButton(methods_frame, text="Secant", variable=self.method_var, value=2, text_color="white")
+        rb_bisection.grid(row=0, column=0, padx=10)
+        rb_newton.grid(row=0, column=1, padx=10)
+        rb_secant.grid(row=0, column=2, padx=10)
+        
+        # Entry for function expression
+        func_label = ctk.CTkLabel(self, text="Enter the function expression (use 'x' as variable):", text_color="white", font=("Arial", 14))
+        func_label.pack(pady=5)
+        self.func_entry = ctk.CTkEntry(self, width=400)
+        self.func_entry.pack(pady=5)
+        
+        # Entry for initial value x0
+        self.x0_label = ctk.CTkLabel(self, text="Value x0:", text_color="white", font=("Arial", 14))
+        self.x0_label.pack(pady=5)
+        self.x0_entry = ctk.CTkEntry(self, width=200)
+        self.x0_entry.pack(pady=5)
+        
+        # Entry for second value x1 (for Bisection and Secant)
+        self.x1_label = ctk.CTkLabel(self, text="Value x1 (for Bisection and Secant):", text_color="white", font=("Arial", 14))
+        self.x1_label.pack(pady=5)
+        self.x1_entry = ctk.CTkEntry(self, width=200)
+        self.x1_entry.pack(pady=5)
+        
+        # Calculate button
+        calc_button = ctk.CTkButton(self, text="Calculate", command=self.calculate)
+        calc_button.pack(pady=20)
+        
+        # Label for result
+        self.result_label = ctk.CTkLabel(self, text="", text_color="white", font=("Arial", 14))
+        self.result_label.pack(pady=10)
+        
+        # Update interface based on selected method
+        self.method_var.trace("w", self.updateEntries)
+        self.updateEntries()
+
+    def updateEntries(self, *args):
+        method = self.method_var.get()
+        if method == 1:
+            # Newton uses only x0
+            self.x1_entry.configure(state="disabled")
+            self.x1_label.configure(state="disabled")
+        else:
+            self.x1_entry.configure(state="normal")
+            self.x1_label.configure(state="normal")
+            
+    def calculate(self):
+        try:
+            func = self.func_entry.get().strip()
+            method = self.method_var.get()
+            if method == 1:
+                x0 = float(self.x0_entry.get())
+                result = newtonsMethod(func, x0)
+            else:
+                x0 = float(self.x0_entry.get())
+                x1 = float(self.x1_entry.get())
+                if method == 0:
+                    result = bisectionMethod(func, x0, x1)
+                elif method == 2:
+                    result = secantMethod(func, x0, x1)
+            self.result_label.configure(text=result)
+        except Exception as e:
+            self.result_label.configure(text=f"Error: {str(e)}")
 
 def run():
-    def newton_nonlinear_system():
-        result_text.set("")
-        try:
-            # Obter nr de equações
-            n = int(entry_num_vars.get())
-            vars = [symbols(f'x{i+1}') for i in range(n)]
-            
-            extra = {
-                'pi': pi,
-                'e': E,
-                'sin': sin,
-                'sen' : sin,
-                'cos': cos,
-                'tan': tan,
-                **{str(var): var for var in vars}
-            }
-
-            # Obter equações
-            equations = []
-            for i in range(n):
-                eq = equations_entries[i].get()
-                eq_split = eq.split("=")
-                if len(eq_split) != 2:
-                    raise ValueError(f"Equação {i+1} no formato inválido. Use 'lado esquerdo = valor'.")
-                else:
-                    left_side = eq_split[0].strip()
-                    right_side = eq_split[1].strip()
-                
-                left_exp = sympify(left_side, locals=extra)
-                right_exp = sympify(right_side, locals=extra)
-                # Igualar expressão a 0
-                equation = left_exp - right_exp
-                equations.append(equation)
-
-            # Obter aproximação inicial
-            x0 = []
-            for i in range(n):
-                x0.append(float(initial_approximations_entries[i].get()))
-            x0 = np.array(x0)
-
-            # Critérios de paragem
-            max_iter = int(entry_max_iter.get())
-            tolerance = float(entry_tolerance.get())
-
-            # Montar o vetor de funções e a Jacobiana
-            F = Matrix(equations)
-            J = F.jacobian(vars)
-
-            # Converter funções simbólicas em funções numéricas
-            F_func = lambdify(vars, F, modules='numpy')
-            J_func = lambdify(vars, J, modules='numpy')
-
-            # Método de Newton
-            xk = x0
-            for k in range(max_iter):
-                # Avaliar F(x) e J(x)
-                Fx = np.array(F_func(*xk), dtype=float).flatten()
-                Jx = np.array(J_func(*xk), dtype=float)
-
-                # Verificar critério de convergência na norma infinito
-                if np.linalg.norm(Fx, ord=np.inf) < tolerance:
-                    result_text.set(f"Solução encontrada em {k} iterações: {xk}")
-                    print(f"Solução encontrada em {k} iterações: {xk}")
-                    if n <= 3:
-                        plot_graph(equations, vars, x0, solution=xk)
-                    return
-
-                # Resolver sistema linear J(x) * dx = -F(x)
-                try:
-                    delta_x = np.linalg.solve(Jx, -Fx)
-                except np.linalg.LinAlgError:
-                    print(f"Iteração {k}:")
-                    print("F(x):")
-                    print(Fx)
-                    print("Matriz Jacobiana (Jx):")
-                    print(Jx)
-                    result_text.set(f"A matriz Jacobiana da iteração {k} é singular, logo não é possível determinar uma solução")
-                    print((f"A matriz Jacobiana da iteração {k} é singular, logo não é possível determinar uma solução"))
-                    return
-                # Atualizar xk
-                xk = xk + delta_x
-                print(f"Iteração {k}:")
-                print(f"xk: {xk}")
-                print("Matriz Jacobiana (Jx):")
-                print(Jx)
-                print("F(x):")
-                print(Fx)
-                print("\n")
-
-            result_text.set(f"Número máximo de iterações atingido. Solução aproximada:\n{xk}")
-            print(f"Número máximo de iterações atingido. Solução aproximada:\n{xk}")
-            if n <= 3:
-                plot_graph(equations, vars, x0, solution=xk)
-        
-        except ValueError as e:
-            result_text.set(str(e))
-        except Exception as e:
-            result_text.set(f"Erro: {str(e)}")
-
-    # Cria o gráfico
-    def plot_graph(equations, vars, x0, solution=None, path=None):
-        if len(vars) == 2:
-            x, y = vars
-            eq_funcs = [lambdify((x, y), eq, modules='numpy') for eq in equations]
-
-            x_vals = np.linspace(x0[0] - 100, x0[0] + 100, 1000)
-            y_vals = np.linspace(x0[1] - 100, x0[1] + 100, 1000)
-            X, Y = np.meshgrid(x_vals, y_vals)
-
-            plt.figure(figsize=(8, 6))
-
-            for i, func in enumerate(eq_funcs):
-                try:
-                    Z = func(X, Y)
-                    plt.contour(X, Y, Z, levels=[0], colors=f'C{i}', label=f'Eq {i+1}', alpha=0.6)
-                except Exception as e:
-                    print(f"Erro ao processar a equação {i + 1} no gráfico: {e}")
-
-            if solution is not None:
-                plt.scatter(solution[0], solution[1], color='red', label='Solução do Método de Newton', zorder=10)
-
-            plt.xlabel(f'{x}')
-            plt.ylabel(f'{y}')
-            plt.title("")
-            plt.axhline(0, color='black', linewidth=0.5, linestyle='--')
-            plt.axvline(0, color='black', linewidth=0.5, linestyle='--')
-            plt.grid(True, alpha=0.3)
-            plt.legend()
-            plt.show()
-
-        elif len(vars) == 3:
-            x, y, z = vars
-            eq_funcs = [lambdify((x, y, z), eq, modules='numpy') for eq in equations]
-
-            x_vals = np.linspace(x0[0] - 25, x0[0] + 25, 30)
-            y_vals = np.linspace(x0[1] - 25, x0[1] + 25, 30)
-            z_vals = np.linspace(x0[2] - 25, x0[2] + 25, 30)
-
-            X, Y = np.meshgrid(x_vals, y_vals)
-            
-            fig = plt.figure(figsize=(10, 8))
-            ax = fig.add_subplot(111, projection='3d')
-
-            # Paleta de cores distintas
-            colors = plt.cm.tab10.colors  # Usar a paleta de 10 cores do Matplotlib
-            num_colors = len(colors)
-
-            # Plotar cada função com uma cor diferente
-            for i, (func, eq) in enumerate(zip(eq_funcs, equations)):
-                Z = func(X, Y, np.zeros_like(X))  # manter z fixo no plano
-                ax.plot_surface(
-                    X, Y, Z, 
-                    alpha=0.7, 
-                    rstride=1, cstride=1, 
-                    cmap=None,  # Remove cmap padrão para usar cores fixas
-                    color=colors[i % num_colors],  # Escolher uma cor distinta
-                    edgecolor='none', 
-                    label=f"Equação {i+1}"
-                )
-
-            # Ponto de solução em vermelho
-            if solution is not None:
-                ax.scatter(
-                    solution[0], solution[1], solution[2],  
-                    color='red', label='Solução do Método de Newton', s=100
-                )
-                ax.legend()
-
-            # Configurações visuais
-            ax.set_xlabel(f"{x}")
-            ax.set_ylabel(f"{y}")
-            ax.set_zlabel(f"{z}")
-            plt.title("Gráfico 3D das Funções")
-            plt.show()
-
-    # Função para criar os campos de entrada
-    def createEntries():
-        try:
-            num_vars = int(entry_num_vars.get())
-            if num_vars <= 0:
-                raise ValueError("O número de variáveis deve ser maior que 0.")
-        except ValueError:
-            result_text.set("Número de variáveis inválido.")
-            return
-        
-        for widget in frame_matrix.winfo_children():
-            widget.destroy()
-
-        global equations_entries, initial_approximations_entries
-        equations_entries = []
-        initial_approximations_entries = []
-
-        for i in range(num_vars):
-            # Entradas para as equações
-            ctk.CTkLabel(frame_matrix, text=f"Equação {i+1}:", text_color="#FFFFFF").grid(row=i, column=0, pady=5, padx=10)
-            eq_entry = ctk.CTkEntry(frame_matrix, width=300)
-            eq_entry.grid(row=i, column=1, pady=5)
-            equations_entries.append(eq_entry)
-
-            # Entradas para aproximações iniciais
-            ctk.CTkLabel(frame_matrix, text=f"x{i+1} inicial:", text_color="#FFFFFF").grid(row=i, column=2, pady=5, padx=10)
-            initial_approx_entry = ctk.CTkEntry(frame_matrix, width=100)
-            initial_approx_entry.grid(row=i, column=3, pady=5)
-            initial_approximations_entries.append(initial_approx_entry)
-
-        frame_matrix.grid(row=2, column=0, pady=20, columnspan=4)
-        frame_bottom.grid(row=3, column=0, pady=20)
-
-
-    # UI base
-    app = ctk.CTk()
-    app.title("Solução de Equações Não Lineares - Método de Newton")
-    app.geometry("1000x600")
-    app.grid_columnconfigure(0, weight=1)
-    app.configure(fg_color="#131313")
-
-    # Divisão em partes
-    frame_top = ctk.CTkFrame(app, fg_color="#131313")
-    frame_top.grid(row=0, column=0, pady=20, padx=10)
-    frame_matrix = ctk.CTkFrame(app, fg_color="#131313")
-    frame_bottom = ctk.CTkFrame(app, fg_color="#131313")
-    frame_bottom.grid(row=1, column=0, pady=20, padx=10)
-
-    # Entrada para o número de variáveis
-    ctk.CTkLabel(frame_top, text="Número de variáveis:", text_color="#FFFFFF").grid(row=0, column=0, pady=5, padx=10)
-    entry_num_vars = ctk.CTkEntry(frame_top, width=100)
-    entry_num_vars.grid(row=0, column=1, pady=5, padx=10)
-
-    # Entrada para o número máximo de iterações
-    ctk.CTkLabel(frame_top, text="Número máximo de iterações:", text_color="#FFFFFF").grid(row=1, column=0, pady=5, padx=10)
-    entry_max_iter = ctk.CTkEntry(frame_top, width=100)
-    entry_max_iter.grid(row=1, column=1, pady=5, padx=10)
-
-    # Entrada para tolerância
-    ctk.CTkLabel(frame_top, text="Tolerância:", text_color="#FFFFFF").grid(row=2, column=0, pady=5, padx=10)
-    entry_tolerance = ctk.CTkEntry(frame_top, width=100)
-    entry_tolerance.grid(row=2, column=1, pady=5, padx=10)
-
-    # Botão "Criar Entradas"
-    ctk.CTkButton(frame_top, text="Criar Entradas", command=createEntries, text_color="#FFFFFF").grid(row=3, column=0, pady=20)
-
-    # Botão "Resolver"
-    ctk.CTkButton(frame_bottom, text="Resolver", command=newton_nonlinear_system, text_color="#FFFFFF").pack(side=tk.LEFT, padx=10)
-
-    # Variável para o resultado
-    result_text = tk.StringVar()
-    ctk.CTkLabel(app, textvariable=result_text, text_color="#FFFFFF").grid(row=4, column=0, pady=20, padx=10)
-
-    # Executar o aplicativo
+    app = RootFinderApp()
     app.mainloop()
 
-
-    # Ex1
-    # -x1*(x1+1) + 2*x2 = 18
-    # (x1-1)**2 + (x2-6)**2 = 25
-
-
-    # Ex2
-    # x1**2-2*x1+x2**2-x3+1=0
-    # x1*x2**2-x1-3*x2+x2*x3+2=0
-    # x1*x3**2-3*x3+x2*x3**2+x1*x2=0
+def main():
+    run()
 
 if __name__ == "__main__":
-    run()
+    main()
