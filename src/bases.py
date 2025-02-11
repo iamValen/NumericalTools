@@ -1,3 +1,8 @@
+"""
+This program implements base conversion.
+It allows users to convert numbers between different bases (from base 2 to base 62).
+"""
+
 import customtkinter as ctk
 import tkinter as tk
 

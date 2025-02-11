@@ -3,11 +3,11 @@ import customtkinter as ctk
 
 from _section import Section
 
-import bases
-import nonLinearSystems
-import LinearSystems
-import integration
-import NewtonRaphson
+import bases as bases
+import nonLinearSystems as nonLinearSystems
+import LinearSystems as LinearSystems
+import integration as integration
+import NewtonRaphson as NewtonRaphson
 
 class Main(ctk.CTk):
     def __init__(self):
@@ -24,24 +24,20 @@ class Main(ctk.CTk):
         top_spacer = ctk.CTkFrame(methods_frame, fg_color="#131313")
         top_spacer.pack(expand=True, fill="both")
 
-        # Container for section buttons
         buttons_container = ctk.CTkFrame(methods_frame, fg_color="#131313")
         buttons_container.pack()
-
-        # Fixed button width for all sections
         button_width = 200
 
-        # Section for Base Conversion
         BaseConversion = Section(
             buttons_container,
-            button_text="              Base Conversion              ",
+            button_text="              Base Conversion              ",        # Section for Base Conversion
+
             tooltip_text="Convert any number from any base to another base",
             command=self.bases,
             button_width=button_width
         )
         BaseConversion.pack(pady=5)
 
-        # Section for Integration
         Integration = Section(
             buttons_container,
             button_text="                   Integration                  ",
@@ -51,7 +47,6 @@ class Main(ctk.CTk):
         )
         Integration.pack(pady=5, anchor="center")
 
-        # Section for Linear Systems
         LinearSystemsSection = Section(
             buttons_container,
             button_text="               Linear Systems               ",
@@ -61,7 +56,6 @@ class Main(ctk.CTk):
         )
         LinearSystemsSection.pack(pady=5, anchor="center")
 
-        # Section for Non-Linear Systems
         NonLinearSystemsSection = Section(
             buttons_container,
             button_text="            Non Linear Systems            ",
@@ -71,7 +65,6 @@ class Main(ctk.CTk):
         )
         NonLinearSystemsSection.pack(pady=5, anchor="center")
 
-        # Section for Newton-Raphson applied to NLS
         NewtonRaphsonSection = Section(
             buttons_container,
             button_text="         NLS - Newton-Raphson         ",

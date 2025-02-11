@@ -1,3 +1,11 @@
+"""
+This program solves systems of linear equations
+using the Jacobi and Gauss-Seidel iterative methods. 
+It allows users to enter the matrix coefficients and parameters such as tolerance and number of iterations.
+The program checks for diagonal dominance and warns the user if the matrix does
+not satisfy this condition. The solution is displayed with the number of iterations taken.
+"""
+
 import numpy as np
 import tkinter as tk
 import tkinter.messagebox as messagebox
@@ -20,18 +28,16 @@ def run():
         return True
 
     def isImpossible(A, B):
-        # Faz a matriz aumentada [A | B]
+        # Aumented Matrix [A | B]
         augmented_matrix = np.column_stack((A, B))
-        # Verifica se o determinante da matriz A é zero, o que pode indicar um sistema impossível
         if np.linalg.det(A) == 0:
-            # Verifica se a matriz aumentada também tem determinante zero
             return False
         return False
 
     def askToContinue():
         return messagebox.askyesno(
-            "Atenção",
-            "A matriz não é diagonalmente dominante.\nDeseja continuar mesmo assim?")
+            "Careful!",
+            "The matrix is not Diagonal Dominant\nDo you still want to proceed?")
 
     def clearEntries():
         for row in entriesA:
@@ -44,12 +50,12 @@ def run():
 
     def jacobi(A, B, x, iterations, tolerance):
         if isImpossible(A, B):
-            result_text.set("O sistema de equações é impossível")
+            result_text.set("The system of equations is impossible")
             clearEntries()
             return None
         if not isDiagonallyDominant(A):
             if not askToContinue():
-                result_text.set("Cancelado pelo utilizador")
+                result_text.set("Canceled by the user")
                 clearEntries()
                 return None
         for k in range(iterations):
@@ -66,12 +72,12 @@ def run():
 
     def gauss(A, B, x, iterations, tolerance):
         if isImpossible(A, B):
-            result_text.set("Cancelado pelo utilizador")
+            result_text.set("Canceled by the user")
             clearEntries()
             return None
         if not isDiagonallyDominant(A):
             if not askToContinue():
-                result_text.set("Cancelado pelo utilizador")
+                result_text.set("Canceled by the user")
                 clearEntries()
                 return None
         for k in range(iterations):
@@ -90,7 +96,7 @@ def run():
         return x[iterations], iterations
 
     def solve():
-        result_text.set("")  # Limpar mensagem de resultado
+        result_text.set("")
         try:
             dimension = int(entry_dimension.get())
             try:
@@ -100,7 +106,7 @@ def run():
             try:
                 N = int(entry_iterations.get())
                 if N < 1:
-                    raise ValueError("Número de iterações inválido. Iterações Máximas: 10\n")
+                    raise ValueError("Number of iterations invalid")
             except ValueError:
                 N = 10
             method = method_var.get()
@@ -143,7 +149,7 @@ def run():
         entriesB = [None] * dimension
         entriesX = [None] * dimension
 
-        # Cria os rótulos para A, X, B
+        # A, B and X text boxes
         ctk.CTkLabel(frame_matrix, text="A", text_color="#FFFFFF").grid(row=0, column=0, columnspan=dimension, pady=5)
         ctk.CTkLabel(frame_matrix, text="X", text_color="#FFFFFF").grid(row=0, column=dimension, pady=5)
         ctk.CTkLabel(frame_matrix, text="B", text_color="#FFFFFF").grid(row=0, column=dimension + 1, pady=5)
@@ -160,43 +166,37 @@ def run():
         frame_matrix.grid(row=2, column=0, pady=20, columnspan=3)
         frame_bottom.grid(row=3, column=0, pady=20, padx=10)
 
-    # UI base
+    # base UI
     app = ctk.CTk()
     app.title("Sistema de Equações Lineares")
     app.geometry("1200x800")
     app.grid_columnconfigure(0, weight=1)
     app.configure(fg_color="#131313")
 
-    # Divisão em partes
     frame_top = ctk.CTkFrame(app, fg_color="#131313")
     frame_top.grid(row=0, column=0, pady=20, padx=10)
     frame_matrix = ctk.CTkFrame(app, fg_color="#131313")
     frame_bottom = ctk.CTkFrame(app, fg_color="#131313")
     frame_bottom.grid(row=1, column=0, pady=20, padx=10)
 
-    # Entry para a dimensão
     ctk.CTkLabel(frame_top, text="Dimensão da Matriz:", text_color="#FFFFFF").grid(row=0, column=0, pady=5, padx=10)
     entry_dimension = ctk.CTkEntry(frame_top, width=100, fg_color="#2E2E2E", text_color="white", placeholder_text="")
     entry_dimension.grid(row=0, column=1, pady=5, padx=10)
 
-    # Entry para o erro
     ctk.CTkLabel(frame_top, text="Erro de tolerância:", text_color="#FFFFFF").grid(row=1, column=0, pady=5, padx=10)
     entry_error = ctk.CTkEntry(frame_top, width=100, fg_color="#2E2E2E", text_color="white", placeholder_text="")
     entry_error.grid(row=1, column=1, pady=5, padx=10)
 
-    # Entry para as iterações
     ctk.CTkLabel(frame_top, text="Número de iterações:", text_color="#FFFFFF").grid(row=2, column=0, pady=5, padx=10)
     entry_iterations = ctk.CTkEntry(frame_top, width=100, fg_color="#2E2E2E", text_color="white", placeholder_text="")
     entry_iterations.grid(row=2, column=1, pady=5, padx=10)
 
-    # Botão "Criar Matriz"
     ctk.CTkButton(frame_top, text="Criar Matriz", command=createEntries, text_color="#FFFFFF").grid(row=3, column=0, pady=20)
 
-    # Botões radio para a escolha do método
     method_var = tk.StringVar(value="Jacobi")
     ctk.CTkRadioButton(frame_bottom, text="Jacobi", variable=method_var, value="Jacobi", text_color="#FFFFFF").pack(side=tk.LEFT, padx=10)
     ctk.CTkRadioButton(frame_bottom, text="Gauss-Seidel", variable=method_var, value="Gauss-Seidel", text_color="#FFFFFF").pack(side=tk.LEFT, padx=10)
-    # Botão "Resolver"
+
     ctk.CTkButton(frame_bottom, text="Resolver", command=solve, text_color="#FFFFFF").pack(side=tk.LEFT, padx=10)
 
     result_text = tk.StringVar()

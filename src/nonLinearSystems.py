@@ -1,7 +1,11 @@
+""" 
+It allows users to find approximate roots of a given function using the following numerical methods:
+Bisection Method, Newton's Method, Secant Method
+"""
+
 import tkinter as tk
 import customtkinter as ctk
 
-# --- Root-finding functions ---
 def secantMethod(func, x0, x1):
     def f(x):
         return eval(func)

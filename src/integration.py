@@ -1,10 +1,14 @@
+"""
+This program is an application that allows users to compute numerical integrals 
+using the Newton-Cotes formulas (both closed and open variants)
+"""
+
 import tkinter as tk
 import customtkinter as ctk
 import numpy as np
 import matplotlib.pyplot as plt
 
 def run():
-    # Extra functions and constants for safe evaluation
     extra = {
         "sin": np.sin, "cos": np.cos, "tan": np.tan,
         "sinh": np.sinh, "cosh": np.cosh, "tanh": np.tanh,
@@ -12,7 +16,6 @@ def run():
         "pi": np.pi, "e": np.e, "sqrt": np.sqrt
     }
 
-    # --- Closed Newton-Cotes Formulas ---
     def closedNewtonCotes(x, y, n):
         h = (x[n] - x[0]) / n
         if n == 1:  # Trapezoidal rule
@@ -26,7 +29,6 @@ def run():
         else:
             raise ValueError("Invalid n for closed formulas.")
 
-    # --- Open Newton-Cotes Formulas ---
     def openNewtonCotes(x, y, n):
         h = (x[-1] - x[0]) / (n + 2)
         # Remove first and last points

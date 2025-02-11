@@ -1,3 +1,9 @@
+"""
+This program is for solving nonlinear systems of equations using the Newton-Raphson method. 
+The user can input multiple equations, set initial approximations, and define stopping criteria (tolerance and maximum iterations). 
+The solver utilizes symbolic differentiation to compute the Jacobian matrix and iteratively finds the roots of the system.
+"""
+
 import numpy as np
 import tkinter as tk
 import customtkinter as ctk
